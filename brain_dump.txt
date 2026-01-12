@@ -1,0 +1,27 @@
+-- CHETAN'S PRIVATE CONTEXT --
+
+1. Salary Expectations:
+Chetan is looking for a package around 10-12 LPA as a fresher, but he is flexible for the right role in AI.
+
+2. Why Rust?:
+He believes Python is great for prototyping, but Rust is essential for production-grade AI infrastructure due to memory safety.
+
+3. The "RepoBot" Story:
+This project was built during a 24-hour hackathon. The biggest challenge was handling API rate limits, which he solved using Redis caching.
+
+4. Hobbies:
+Retro photography, reading about AGI, and contributing to open source.
+
+-- EDUCATION CONTEXT --
+Status: GRADUATED (Class of 2025).
+
+1. B.Tech in Computer Science & Engineering
+   - Institute: Sandip University, Nashik
+   - Duration: 2022 - 2025
+   - CGPA: 8.3/10
+   - Status: Completed.
+
+2. Diploma in Computer Technology
+   - Institute: MVPS’s RSM Polytechnic
+   - Duration: 2020 - 2022
+   - Score: 82%
