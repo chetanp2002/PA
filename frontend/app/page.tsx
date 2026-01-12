@@ -50,19 +50,42 @@ const ThinkingLogs = ({ logs }: { logs?: string[] }) => {
   );
 };
 
-// --- COMPONENT: Typewriter ---
+// --- COMPONENT: Typewriter with Link Fix ---
 const TypewriterEffect = ({ content }: { content: string }) => {
   const [displayedText, setDisplayedText] = useState("");
   const [isComplete, setIsComplete] = useState(false);
+
   useEffect(() => {
     let index = 0;
     const intervalId = setInterval(() => {
-      setDisplayedText((prev) => prev + content.charAt(index)); index++;
-      if (index === content.length) { clearInterval(intervalId); setIsComplete(true); }
+      setDisplayedText((prev) => prev + content.charAt(index)); 
+      index++;
+      if (index === content.length) { 
+        clearInterval(intervalId); 
+        setIsComplete(true); 
+      }
     }, 4);
     return () => clearInterval(intervalId);
   }, [content]);
-  return <ReactMarkdown remarkPlugins={[remarkGfm]}>{isComplete ? content : displayedText + " ▍"}</ReactMarkdown>;
+
+  // 👇 Yahan Maine 'components' prop add kiya hai taaki Links New Tab me khulein
+  return (
+    <ReactMarkdown 
+      remarkPlugins={[remarkGfm]}
+      components={{
+        a: ({node, ...props}) => (
+          <a 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-blue-500 hover:underline font-medium" 
+            {...props} 
+          />
+        )
+      }}
+    >
+      {isComplete ? content : displayedText + " ▍"}
+    </ReactMarkdown>
+  );
 };
 
 export default function Home() {
@@ -74,11 +97,12 @@ export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Use Environment variable for API URL
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => scrollRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, loading]);
   
   const clearChat = () => setMessages([INITIAL_MESSAGE]);
-  
-  // --- ACTION HANDLERS (Populate Input) ---
   const handleAction = (text: string) => setInput(text);
 
   const startListening = () => {
@@ -97,8 +121,6 @@ export default function Home() {
     setMessages(prev => [...prev, { role: "user", content: text }]);
     setInput(""); setLoading(true);
     try {
-      // Use Environment variable, fallback to localhost for testing
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await axios.post(`${API_URL}/chat`, { message: text });
       setMessages(prev => [...prev, { role: "ai", content: res.data.response, thoughts: res.data.thoughts }]);
     } catch { setMessages(prev => [...prev, { role: "ai", content: "⚠️ Error: Backend disconnected." }]); }
@@ -144,72 +166,46 @@ export default function Home() {
 
         {/* BACKEND TOOLS LIST */}
         <div className="flex-1 p-4 space-y-6 overflow-y-auto">
-            
-            {/* Group 1: Analysis Tools */}
             <div>
               <h3 className={`text-[10px] font-bold uppercase tracking-widest mb-3 opacity-50`}>Analysis Tools</h3>
               <div className="space-y-2">
-                
-                {/* 🛠️ get_github_activity */}
                 <button onClick={() => handleAction("Run a live audit of your GitHub activity.")} className={`w-full flex items-center gap-3 p-2.5 rounded-lg border transition-all text-sm group ${isDarkMode ? "hover:bg-white/5 border-white/5 text-gray-300" : "hover:bg-gray-50 border-gray-100 text-gray-700"}`}>
-                   <Github size={16} className="text-white group-hover:scale-110 transition-transform" /> 
-                   <span>GitHub Live Audit</span>
+                   <Github size={16} className="text-white group-hover:scale-110 transition-transform" /> <span>GitHub Live Audit</span>
                 </button>
-
-                {/* 🛠️ analyze_resume_fit */}
                 <button onClick={() => handleAction("Check my fit for this Job Description: [PASTE JD HERE]")} className={`w-full flex items-center gap-3 p-2.5 rounded-lg border transition-all text-sm group ${isDarkMode ? "hover:bg-purple-500/10 border-purple-500/20 text-purple-200" : "hover:bg-purple-50 border-purple-100 text-purple-800"}`}>
-                   <Briefcase size={16} className="text-purple-500 group-hover:scale-110 transition-transform" /> 
-                   <span>JD Match Analyzer</span>
+                   <Briefcase size={16} className="text-purple-500 group-hover:scale-110 transition-transform" /> <span>JD Match Analyzer</span>
                 </button>
-
-                {/* 🛠️ get_project_media_assets */}
                 <button onClick={() => handleAction("Show me project demos and media assets.")} className={`w-full flex items-center gap-3 p-2.5 rounded-lg border transition-all text-sm group ${isDarkMode ? "hover:bg-white/5 border-white/5 text-gray-300" : "hover:bg-gray-50 border-gray-100 text-gray-700"}`}>
-                   <PlayCircle size={16} className="text-pink-500 group-hover:scale-110 transition-transform" /> 
-                   <span>Project Media Lookup</span>
+                   <PlayCircle size={16} className="text-pink-500 group-hover:scale-110 transition-transform" /> <span>Project Media Lookup</span>
                 </button>
               </div>
             </div>
 
-            {/* Group 2: Knowledge & Search */}
             <div>
               <h3 className={`text-[10px] font-bold uppercase tracking-widest mb-3 opacity-50`}>Knowledge Base</h3>
               <div className="space-y-2">
-                
-                {/* 🛠️ get_resume_download_link */}
                 <button onClick={() => handleAction("Provide the download link for the resume.")} className={`w-full flex items-center gap-3 p-2.5 rounded-lg border transition-all text-sm group ${isDarkMode ? "hover:bg-white/5 border-white/5 text-gray-300" : "hover:bg-gray-50 border-gray-100 text-gray-700"}`}>
-                   <FileText size={16} className="text-blue-500 group-hover:scale-110 transition-transform" /> 
-                   <span>Get Resume PDF</span>
+                   <FileText size={16} className="text-blue-500 group-hover:scale-110 transition-transform" /> <span>Get Resume PDF</span>
                 </button>
-
-                 {/* 🛠️ get_web_search_tool */}
                  <button onClick={() => handleAction("Search the web for current AI trends matching your skills.")} className={`w-full flex items-center gap-3 p-2.5 rounded-lg border transition-all text-sm group ${isDarkMode ? "hover:bg-white/5 border-white/5 text-gray-300" : "hover:bg-gray-50 border-gray-100 text-gray-700"}`}>
-                   <Search size={16} className="text-yellow-500 group-hover:scale-110 transition-transform" /> 
-                   <span>Web Search Agent</span>
+                   <Search size={16} className="text-yellow-500 group-hover:scale-110 transition-transform" /> <span>Web Search Agent</span>
                 </button>
               </div>
             </div>
 
-            {/* Group 3: Contact Actions */}
             <div>
               <h3 className={`text-[10px] font-bold uppercase tracking-widest mb-3 opacity-50`}>Actions</h3>
               <div className="space-y-2">
-                
-                {/* 🛠️ schedule_meeting */}
                 <button onClick={() => handleAction("I want to schedule an interview.")} className={`w-full flex items-center gap-3 p-2.5 rounded-lg border transition-all text-sm group ${isDarkMode ? "hover:bg-white/5 border-white/5 text-gray-300" : "hover:bg-gray-50 border-gray-100 text-gray-700"}`}>
-                   <Calendar size={16} className="text-green-500 group-hover:scale-110 transition-transform" /> 
-                   <span>Schedule Interview</span>
+                   <Calendar size={16} className="text-green-500 group-hover:scale-110 transition-transform" /> <span>Schedule Interview</span>
                 </button>
-
-                 {/* 🛠️ send_contact_email */}
                  <button onClick={() => handleAction("Draft an email to Chetan.")} className={`w-full flex items-center gap-3 p-2.5 rounded-lg border transition-all text-sm group ${isDarkMode ? "hover:bg-white/5 border-white/5 text-gray-300" : "hover:bg-gray-50 border-gray-100 text-gray-700"}`}>
-                   <Mail size={16} className="text-orange-500 group-hover:scale-110 transition-transform" /> 
-                   <span>Send Email</span>
+                   <Mail size={16} className="text-orange-500 group-hover:scale-110 transition-transform" /> <span>Send Email</span>
                 </button>
               </div>
             </div>
         </div>
 
-        {/* Footer */}
         <div className={`p-4 border-t text-[10px] text-center opacity-40 ${isDarkMode ? "border-white/5" : "border-gray-200"}`}>
             System v2.4 • Powered by LangGraph
         </div>
@@ -233,14 +229,33 @@ export default function Home() {
                 
                 <div className={`flex gap-4 max-w-[85%] sm:max-w-[75%] ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
                    {msg.role === "ai" && <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-lg ${isDarkMode ? "bg-gradient-to-br from-indigo-600 to-purple-700" : "bg-black"}`}><Bot size={20} className="text-white" /></div>}
+                   
+                   {/* 👇 MESSAGE BUBBLE RENDERING */}
                    <div className={`rounded-2xl p-4 sm:px-6 shadow-sm border ${msg.role === "ai" ? theme.chatAi : theme.chatUser}`}>
-                     {msg.role === "ai" ? (idx === messages.length - 1 && !loading ? <TypewriterEffect content={msg.content} /> : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>) : <p className="text-[15px] font-medium">{msg.content}</p>}
+                     {msg.role === "ai" ? (
+                       // Is logic se 'Typewriter' call hota hai, jisme maine "target='_blank'" fix kar diya hai
+                       idx === messages.length - 1 && !loading ? 
+                        <TypewriterEffect content={msg.content} /> : 
+                        // Is logic se 'Old Messages' render hote hain, yahan bhi FIX add kar diya
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            a: ({node, ...props}) => (
+                              <a target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline" {...props} />
+                            )
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                     ) : <p className="text-[15px] font-medium">{msg.content}</p>}
                    </div>
+
                    {msg.role === "user" && <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isDarkMode ? "bg-gray-800" : "bg-gray-200"}`}><User size={20} className={isDarkMode ? "text-gray-400" : "text-gray-600"} /></div>}
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
+          
           {loading && <div className="flex gap-4 ml-2"><div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isDarkMode ? "bg-gradient-to-br from-indigo-600 to-purple-700" : "bg-black"}`}><Bot size={20} className="text-white" /></div><div className={`px-4 py-3 rounded-2xl flex items-center gap-1 ${isDarkMode ? "bg-[#111] border border-white/10" : "bg-white border border-gray-200"}`}><span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce"></span><span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce delay-100"></span><span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce delay-200"></span></div></div>}
           <div ref={scrollRef} />
         </div>
